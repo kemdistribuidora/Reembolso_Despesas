@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cadastro de Despesas</title>
+  <style>
+    :root {
+      --bg: #0f172a;
+      --card: #1e293b;
+      --border: #334155;
+      --text: #e2e8f0;
+      --muted: #94a3b8;
+      --accent: #2563eb;
+      --accent-hover: #1d4ed8;
+      --ok: #16a34a;
+      --err: #dc2626;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: var(--bg);
+      color: var(--text);
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, sans-serif;
+      padding: 24px;
+    }
+    .card {
+      width: 100%;
+      max-width: 460px;
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 28px;
+      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+    }
+    h1 {
+      margin: 0 0 4px;
+      font-size: 1.35rem;
+    }
+    .sub {
+      margin: 0 0 22px;
+      color: var(--muted);
+      font-size: .9rem;
+    }
+    label {
+      display: block;
+      font-size: .82rem;
+      color: var(--muted);
+      margin: 14px 0 6px;
+      letter-spacing: .02em;
+    }
+    input, textarea {
+      width: 100%;
+      background: #0f172a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 11px 12px;
+      font-size: .95rem;
+      font-family: inherit;
+    }
+    input:focus, textarea:focus {
+      outline: none;
+      border-color: var(--accent);
+    }
+    textarea { resize: vertical; min-height: 68px; }
+    button {
+      width: 100%;
+      margin-top: 22px;
+      background: var(--accent);
+      color: #fff;
+      border: none;
+      border-radius: 8px;
+      padding: 13px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    button:hover { background: var(--accent-hover); }
+    button:disabled { opacity: .6; cursor: not-allowed; }
+    .msg {
+      margin-top: 16px;
+      font-size: .9rem;
+      text-align: center;
+      min-height: 20px;
+    }
+    .msg.ok { color: var(--ok); }
+    .msg.err { color: var(--err); }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Cadastro de Despesas</h1>
+    <p class="sub">Preencha os dados abaixo para registrar uma despesa.</p>
+
+    <form id="form">
+      <label for="data">DATA</label>
+      <input type="date" id="data" name="data" required />
+
+      <label for="nome">NOME</label>
+      <input type="text" id="nome" name="nome" placeholder="Nome de quem gastou" required />
+
+      <label for="descricao">DESCRIÇÃO</label>
+      <textarea id="descricao" name="descricao" placeholder="Descrição da despesa" required></textarea>
+
+      <label for="valor">VALOR (R$)</label>
+      <input type="number" id="valor" name="valor" step="0.01" min="0" placeholder="0,00" required />
+
+      <label for="autorizado">AUTORIZADO POR?</label>
+      <input type="text" id="autorizado" name="autorizado" placeholder="Quem autorizou" required />
+
+      <button type="submit" id="btn">Salvar despesa</button>
+      <div class="msg" id="msg"></div>
+    </form>
+  </div>
+
+  <script>
+    // ===== CONFIGURAÇÃO =====
+    // Cole aqui a URL do seu Web App do Google Apps Script (ver README.md)
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfigLxrirH41Nbg2E2xCf2gBHEFcL1OPF_b7riHkmudSGXv02DwPz0KTm1FO-t-S0L/exec";
+    // ========================
+
+    const form = document.getElementById("form");
+    const btn = document.getElementById("btn");
+    const msg = document.getElementById("msg");
+
+    // Preenche a data de hoje por padrão
+    document.getElementById("data").valueAsDate = new Date();
+
+    form.addEventListener("submit", async (e) => {
+      e.preventDefault();
+
+      if (WEB_APP_URL.startsWith("COLE_AQUI")) {
+        show("Configure a URL do Apps Script em index.html (WEB_APP_URL).", "err");
+        return;
+      }
+
+      const dados = {
+        data: form.data.value,
+        nome: form.nome.value.trim(),
+        descricao: form.descricao.value.trim(),
+        valor: form.valor.value,
+        autorizado: form.autorizado.value.trim(),
+      };
+
+      btn.disabled = true;
+      show("Salvando...", "");
+
+      try {
+        const resp = await fetch(WEB_APP_URL, {
+          method: "POST",
+          // text/plain evita o preflight de CORS com o Apps Script
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(dados),
+        });
+        const result = await resp.json();
+
+        if (result.ok) {
+          show("Despesa salva com sucesso!", "ok");
+          form.reset();
+          document.getElementById("data").valueAsDate = new Date();
+        } else {
+          show("Erro ao salvar: " + (result.error || "desconhecido"), "err");
+        }
+      } catch (err) {
+        show("Falha na conexão: " + err.message, "err");
+      } finally {
+        btn.disabled = false;
+      }
+    });
+
+    function show(text, type) {
+      msg.textContent = text;
+      msg.className = "msg " + (type || "");
+    }
+  </script>
+</body>
+</html>
