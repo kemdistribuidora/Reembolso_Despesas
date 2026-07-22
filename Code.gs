@@ -5,6 +5,9 @@
  * Veja README.md para o passo a passo de publicação.
  */
 
+// ID da planilha do Google Sheets (pego da URL da planilha)
+const PLANILHA_ID = '1pQM2uOrlzE9mcO5N_sryUsUHHnGzeIk5HolCerJ0YXM';
+
 // Nome da aba onde as despesas serão gravadas
 const NOME_ABA = 'Despesas';
 
@@ -77,17 +80,42 @@ function salvarAnexo(dados) {
 }
 
 /**
- * Retorna a aba de despesas, criando-a com cabeçalhos se ainda não existir.
+ * Prepara a tabela: cria a aba "Despesas" (se não existir) e monta a linha
+ * de cabeçalhos com as colunas. Pode rodar manualmente no editor a qualquer
+ * momento — é seguro, não apaga dados existentes.
  */
-function obterAba() {
-  const planilha = SpreadsheetApp.getActiveSpreadsheet();
+function prepararTabela() {
+  const planilha = SpreadsheetApp.openById(PLANILHA_ID);
   let aba = planilha.getSheetByName(NOME_ABA);
 
+  // Cria a aba se ainda não existir
   if (!aba) {
     aba = planilha.insertSheet(NOME_ABA);
-    aba.appendRow(CABECALHOS);
-    aba.getRange(1, 1, 1, CABECALHOS.length).setFontWeight('bold');
-    aba.setFrozenRows(1);
+  }
+
+  // (Re)escreve os cabeçalhos na primeira linha e formata
+  const faixa = aba.getRange(1, 1, 1, CABECALHOS.length);
+  faixa.setValues([CABECALHOS]);
+  faixa.setFontWeight('bold');
+  faixa.setBackground('#1B2A4A');
+  faixa.setFontColor('#ffffff');
+  aba.setFrozenRows(1);
+  aba.autoResizeColumns(1, CABECALHOS.length);
+
+  Logger.log('Tabela pronta na aba "' + NOME_ABA + '".');
+  return aba;
+}
+
+/**
+ * Retorna a aba de despesas, garantindo que ela exista com os cabeçalhos.
+ */
+function obterAba() {
+  const planilha = SpreadsheetApp.openById(PLANILHA_ID);
+  let aba = planilha.getSheetByName(NOME_ABA);
+
+  // Se a aba não existe (ou está vazia), prepara a tabela
+  if (!aba || aba.getLastRow() === 0) {
+    aba = prepararTabela();
   }
 
   return aba;
