@@ -40,6 +40,16 @@ que grava os dados numa planilha do Google via Apps Script.
 
 3. Salve e abra `index.html` no navegador. Pronto — cada envio vira uma linha na planilha.
 
+## Anexos
+
+- O campo **ANEXO** (comprovante) é opcional. Aceita imagens e PDF, até 25 MB.
+- Os arquivos são salvos na pasta do Google Drive definida em `Code.gs` na constante
+  `PASTA_ANEXOS_ID` (já configurada com a sua pasta). O link do arquivo é gravado
+  na coluna **Anexo** da planilha.
+- Na **primeira** vez que enviar um anexo, o Apps Script vai pedir autorização extra
+  para acessar o Drive — aceite. (Se você já implantou antes de adicionar o anexo,
+  refaça a autorização executando a função `doPost` uma vez no editor, ou reimplantando.)
+
 ## Observações
 
 - Se você alterar o `Code.gs`, faça **Implantar → Gerenciar implantações → editar → Nova versão**

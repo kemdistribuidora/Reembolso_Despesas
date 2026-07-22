@@ -68,6 +68,16 @@
       border-color: var(--accent);
     }
     textarea { resize: vertical; min-height: 68px; }
+    input[type="file"] { padding: 9px 12px; }
+    input[type="file"]::file-selector-button {
+      background: var(--border);
+      color: var(--text);
+      border: none;
+      border-radius: 6px;
+      padding: 6px 12px;
+      margin-right: 10px;
+      cursor: pointer;
+    }
     button {
       width: 100%;
       margin-top: 22px;
@@ -113,6 +123,9 @@
       <label for="autorizado">AUTORIZADO POR?</label>
       <input type="text" id="autorizado" name="autorizado" placeholder="Quem autorizou" required />
 
+      <label for="anexo">ANEXO (comprovante)</label>
+      <input type="file" id="anexo" name="anexo" accept="image/*,.pdf" />
+
       <button type="submit" id="btn">Salvar despesa</button>
       <div class="msg" id="msg"></div>
     </form>
@@ -121,7 +134,7 @@
   <script>
     // ===== CONFIGURAÇÃO =====
     // Cole aqui a URL do seu Web App do Google Apps Script (ver README.md)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfigLxrirH41Nbg2E2xCf2gBHEFcL1OPF_b7riHkmudSGXv02DwPz0KTm1FO-t-S0L/exec";
+    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfigLhttps://script.google.com/macros/s/AKfycbzAphUqhsqDcO_080YXKnSPrYXoaixhgs4fVtPIpquqtEQCdRUUjPwNqxLuoHObACU/execxrirH41Nbg2E2xCf2gBHEFcL1OPF_b7riHkmudSGXv02DwPz0KTm1FO-t-S0L/exec";
     // ========================
 
     const form = document.getElementById("form");
@@ -150,6 +163,26 @@
       btn.disabled = true;
       show("Salvando...", "");
 
+      // Se houver anexo, lê o arquivo e converte para base64
+      const arquivo = form.anexo.files[0];
+      if (arquivo) {
+        if (arquivo.size > 25 * 1024 * 1024) {
+          show("Anexo muito grande (máx. 25 MB).", "err");
+          btn.disabled = false;
+          return;
+        }
+        try {
+          const base64 = await lerArquivoBase64(arquivo);
+          dados.anexoNome = arquivo.name;
+          dados.anexoTipo = arquivo.type || "application/octet-stream";
+          dados.anexoBase64 = base64;
+        } catch (err) {
+          show("Falha ao ler o anexo: " + err.message, "err");
+          btn.disabled = false;
+          return;
+        }
+      }
+
       try {
         const resp = await fetch(WEB_APP_URL, {
           method: "POST",
@@ -176,6 +209,16 @@
     function show(text, type) {
       msg.textContent = text;
       msg.className = "msg " + (type || "");
+    }
+
+    // Lê um arquivo e retorna só o conteúdo em base64 (sem o prefixo data:)
+    function lerArquivoBase64(arquivo) {
+      return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+        reader.onload = () => resolve(reader.result.split(",")[1]);
+        reader.onerror = () => reject(new Error("erro de leitura"));
+        reader.readAsDataURL(arquivo);
+      });
     }
   </script>
 </body>

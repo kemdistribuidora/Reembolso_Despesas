@@ -8,8 +8,11 @@
 // Nome da aba onde as despesas serão gravadas
 const NOME_ABA = 'Despesas';
 
+// ID da pasta do Google Drive onde os anexos serão salvos
+const PASTA_ANEXOS_ID = '1XpI6Kpkd_o2TZGbXvw9ex7odEZsgpy3J';
+
 // Cabeçalhos das colunas (a ordem define a ordem na planilha)
-const CABECALHOS = ['Registrado em', 'Data', 'Nome', 'Descrição', 'Valor', 'Autorizado por'];
+const CABECALHOS = ['Registrado em', 'Data', 'Nome', 'Descrição', 'Valor', 'Autorizado por', 'Anexo'];
 
 /**
  * Recebe o POST enviado pelo formulário e grava uma linha na planilha.
@@ -17,6 +20,12 @@ const CABECALHOS = ['Registrado em', 'Data', 'Nome', 'Descrição', 'Valor', 'Au
 function doPost(e) {
   try {
     const dados = JSON.parse(e.postData.contents);
+
+    // Se veio anexo, salva na pasta do Drive e pega o link
+    let linkAnexo = '';
+    if (dados.anexoBase64) {
+      linkAnexo = salvarAnexo(dados);
+    }
 
     const aba = obterAba();
 
@@ -27,12 +36,31 @@ function doPost(e) {
       dados.descricao || '',         // Descrição
       Number(dados.valor) || 0,      // Valor
       dados.autorizado || '',        // Autorizado por
+      linkAnexo,                     // Link do anexo no Drive
     ]);
 
     return resposta({ ok: true });
   } catch (err) {
     return resposta({ ok: false, error: String(err) });
   }
+}
+
+/**
+ * Salva o anexo (base64) na pasta do Drive e retorna o link do arquivo.
+ * O nome do arquivo é prefixado com data e nome para facilitar a busca.
+ */
+function salvarAnexo(dados) {
+  const pasta = DriveApp.getFolderById(PASTA_ANEXOS_ID);
+
+  const bytes = Utilities.base64Decode(dados.anexoBase64);
+  const nomeBase = [dados.data, dados.nome, dados.anexoNome]
+    .filter(String)
+    .join(' - ');
+
+  const blob = Utilities.newBlob(bytes, dados.anexoTipo, nomeBase);
+  const arquivo = pasta.createFile(blob);
+
+  return arquivo.getUrl();
 }
 
 /**
