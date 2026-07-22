@@ -52,7 +52,10 @@ function doPost(e) {
  */
 function autorizar() {
   const pasta = DriveApp.getFolderById(PASTA_ANEXOS_ID);
-  Logger.log('Autorizado! Pasta: ' + pasta.getName());
+  // Cria e apaga um arquivo de teste para forçar o escopo de ESCRITA no Drive
+  const teste = pasta.createFile('teste_autorizacao.txt', 'ok', 'text/plain');
+  teste.setTrashed(true);
+  Logger.log('Autorizado (leitura + escrita)! Pasta: ' + pasta.getName());
 }
 
 /**
