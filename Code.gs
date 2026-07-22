@@ -46,6 +46,16 @@ function doPost(e) {
 }
 
 /**
+ * Rode esta função UMA VEZ no editor do Apps Script para conceder a
+ * permissão de acesso ao Drive (aparece uma janela de autorização).
+ * Depois disso, os anexos passam a ser salvos normalmente.
+ */
+function autorizar() {
+  const pasta = DriveApp.getFolderById(PASTA_ANEXOS_ID);
+  Logger.log('Autorizado! Pasta: ' + pasta.getName());
+}
+
+/**
  * Salva o anexo (base64) na pasta do Drive e retorna o link do arquivo.
  * O nome do arquivo é prefixado com data e nome para facilitar a busca.
  */

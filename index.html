@@ -3,16 +3,22 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Cadastro de Despesas</title>
+  <title>Cadastro de Despesas — Distribuidora KEM</title>
+  <link rel="icon" type="image/png" href="imagens/icone.png" />
   <style>
     :root {
-      --bg: #0f172a;
-      --card: #1e293b;
-      --border: #334155;
-      --text: #e2e8f0;
-      --muted: #94a3b8;
-      --accent: #2563eb;
-      --accent-hover: #1d4ed8;
+      /* Paleta da marca KEM */
+      --brand-orange: #F7941E;
+      --brand-red: #E63329;
+      --brand-navy: #1B2A4A;
+      --brand-blue: #2E5AA8;
+      --gradient: linear-gradient(135deg, #F9A81D 0%, #F7941E 40%, #E63329 100%);
+
+      --bg: #eef1f6;
+      --card: #ffffff;
+      --border: #d7dce5;
+      --text: #1B2A4A;
+      --muted: #6b7280;
       --ok: #16a34a;
       --err: #dc2626;
     }
@@ -33,79 +39,116 @@
       max-width: 460px;
       background: var(--card);
       border: 1px solid var(--border);
-      border-radius: 14px;
-      padding: 28px;
-      box-shadow: 0 10px 40px rgba(0,0,0,.35);
+      border-radius: 16px;
+      overflow: hidden;
+      box-shadow: 0 12px 40px rgba(27, 42, 74, .12);
     }
+    /* Barra superior com o gradiente da marca */
+    .card::before {
+      content: "";
+      display: block;
+      height: 6px;
+      background: var(--gradient);
+    }
+    .header {
+      text-align: center;
+      padding: 26px 28px 6px;
+    }
+    .header img {
+      height: 56px;
+      width: auto;
+      margin-bottom: 14px;
+    }
+    .body { padding: 6px 28px 30px; }
     h1 {
       margin: 0 0 4px;
-      font-size: 1.35rem;
+      font-size: 1.3rem;
+      color: var(--brand-navy);
     }
     .sub {
-      margin: 0 0 22px;
+      margin: 0 0 8px;
       color: var(--muted);
       font-size: .9rem;
     }
     label {
       display: block;
-      font-size: .82rem;
-      color: var(--muted);
+      font-size: .78rem;
+      font-weight: 600;
+      color: var(--brand-navy);
       margin: 14px 0 6px;
-      letter-spacing: .02em;
+      letter-spacing: .03em;
     }
     input, textarea {
       width: 100%;
-      background: #0f172a;
+      background: #fff;
       border: 1px solid var(--border);
       border-radius: 8px;
       color: var(--text);
       padding: 11px 12px;
       font-size: .95rem;
       font-family: inherit;
+      transition: border-color .15s, box-shadow .15s;
     }
     input:focus, textarea:focus {
       outline: none;
-      border-color: var(--accent);
+      border-color: var(--brand-blue);
+      box-shadow: 0 0 0 3px rgba(46, 90, 168, .15);
     }
     textarea { resize: vertical; min-height: 68px; }
     input[type="file"] { padding: 9px 12px; }
     input[type="file"]::file-selector-button {
-      background: var(--border);
-      color: var(--text);
+      background: var(--brand-navy);
+      color: #fff;
       border: none;
       border-radius: 6px;
       padding: 6px 12px;
       margin-right: 10px;
       cursor: pointer;
+      font-family: inherit;
     }
     button {
       width: 100%;
-      margin-top: 22px;
-      background: var(--accent);
+      margin-top: 24px;
+      background: var(--gradient);
       color: #fff;
       border: none;
       border-radius: 8px;
-      padding: 13px;
+      padding: 14px;
       font-size: 1rem;
-      font-weight: 600;
+      font-weight: 700;
+      letter-spacing: .02em;
       cursor: pointer;
+      box-shadow: 0 6px 16px rgba(230, 51, 41, .28);
+      transition: filter .15s, transform .05s;
     }
-    button:hover { background: var(--accent-hover); }
-    button:disabled { opacity: .6; cursor: not-allowed; }
+    button:hover { filter: brightness(1.05); }
+    button:active { transform: translateY(1px); }
+    button:disabled { opacity: .6; cursor: not-allowed; filter: none; }
     .msg {
       margin-top: 16px;
       font-size: .9rem;
       text-align: center;
       min-height: 20px;
+      font-weight: 500;
     }
     .msg.ok { color: var(--ok); }
     .msg.err { color: var(--err); }
+    .foot {
+      text-align: center;
+      margin-top: 18px;
+      font-size: .72rem;
+      color: var(--muted);
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Cadastro de Despesas</h1>
-    <p class="sub">Preencha os dados abaixo para registrar uma despesa.</p>
+    <div class="header">
+      <img src="imagens/Distribuidora_KEM.png" alt="Distribuidora KEM" />
+      <h1>Cadastro de Despesas</h1>
+      <p class="sub">Preencha os dados abaixo para registrar uma despesa.</p>
+    </div>
+    <div class="body">
 
     <form id="form">
       <label for="data">DATA</label>
@@ -129,12 +172,14 @@
       <button type="submit" id="btn">Salvar despesa</button>
       <div class="msg" id="msg"></div>
     </form>
+      <p class="foot">Distribuidora KEM · Controle de Despesas</p>
+    </div>
   </div>
 
   <script>
     // ===== CONFIGURAÇÃO =====
     // Cole aqui a URL do seu Web App do Google Apps Script (ver README.md)
-    const WEB_APP_URL = "https://script.google.com/macros/s/AKfycbyfigLhttps://script.google.com/macros/s/AKfycbzAphUqhsqDcO_080YXKnSPrYXoaixhgs4fVtPIpquqtEQCdRUUjPwNqxLuoHObACU/execxrirH41Nbg2E2xCf2gBHEFcL1OPF_b7riHkmudSGXv02DwPz0KTm1FO-t-S0L/exec";
+    const WEB_APP_URL = "https://script.google.com/machttps://script.google.com/macros/s/AKfycbzuHmk6-NWaA-E6ydFEne2mEBt62Pew1J7eXdbn8X4Qk1MKOskfiMmQihC6u0ZVI7iQ/execros/s/AKfycbzAphUqhsqDcO_080YXKnSPrYXoaixhgs4fVtPIpquqtEQCdRUUjPwNqxLuoHObACU/exec";
     // ========================
 
     const form = document.getElementById("form");
