@@ -161,7 +161,7 @@
       <textarea id="descricao" name="descricao" placeholder="Descrição da despesa" required></textarea>
 
       <label for="valor">VALOR (R$)</label>
-      <input type="number" id="valor" name="valor" step="0.01" min="0" placeholder="0,00" required />
+      <input type="text" id="valor" name="valor" inputmode="decimal" placeholder="R$ 0,00" autocomplete="off" required />
 
       <label for="autorizado">AUTORIZADO POR?</label>
       <input type="text" id="autorizado" name="autorizado" placeholder="Quem autorizou" required />
@@ -185,6 +185,17 @@
     const form = document.getElementById("form");
     const btn = document.getElementById("btn");
     const msg = document.getElementById("msg");
+    const valor = document.getElementById("valor");
+
+    valor.addEventListener("input", () => {
+      const digitos = valor.value.replace(/\D/g, "");
+      valor.value = digitos
+        ? (Number(digitos) / 100).toLocaleString("pt-BR", {
+            style: "currency",
+            currency: "BRL",
+          })
+        : "";
+    });
 
     // Preenche a data de hoje por padrão
     document.getElementById("data").valueAsDate = new Date();
@@ -201,7 +212,7 @@
         data: form.data.value,
         nome: form.nome.value.trim(),
         descricao: form.descricao.value.trim(),
-        valor: form.valor.value,
+        valor: (Number(valor.value.replace(/\D/g, "")) / 100).toFixed(2),
         autorizado: form.autorizado.value.trim(),
       };
 
