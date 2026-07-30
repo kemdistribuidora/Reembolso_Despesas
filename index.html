@@ -219,7 +219,7 @@
       btn.disabled = true;
       show("Salvando...", "");
 
-      // Se houver anexo, lê o arquivo e converte para base64
+      // Se houver anexo, lê o arquivo (comprimindo se for imagem) e converte para base64
       const arquivo = form.anexo.files[0];
       if (arquivo) {
         if (arquivo.size > 25 * 1024 * 1024) {
@@ -228,9 +228,23 @@
           return;
         }
         try {
-          const base64 = await lerArquivoBase64(arquivo);
-          dados.anexoNome = arquivo.name;
-          dados.anexoTipo = arquivo.type || "application/octet-stream";
+          let paraEnviar = arquivo;
+          let nomeAnexo = arquivo.name;
+
+          // Fotos de celular costumam vir enormes; comprime antes de converter
+          // pra base64 (que já infla o tamanho em ~33%) e enviar pro Apps Script.
+          if (arquivo.type.startsWith("image/")) {
+            try {
+              paraEnviar = await comprimirImagem(arquivo);
+              nomeAnexo = arquivo.name.replace(/\.[^.]+$/, "") + ".jpg";
+            } catch (errCompressao) {
+              paraEnviar = arquivo; // se falhar, envia o original
+            }
+          }
+
+          const base64 = await lerArquivoBase64(paraEnviar);
+          dados.anexoNome = nomeAnexo;
+          dados.anexoTipo = paraEnviar.type || "application/octet-stream";
           dados.anexoBase64 = base64;
         } catch (err) {
           show("Falha ao ler o anexo: " + err.message, "err");
@@ -267,7 +281,35 @@
       msg.className = "msg " + (type || "");
     }
 
-    // Lê um arquivo e retorna só o conteúdo em base64 (sem o prefixo data:)
+    // Redimensiona/comprime uma imagem via canvas antes do upload (JPEG, qualidade .7)
+    function comprimirImagem(arquivo, maxDim = 1600, qualidade = 0.7) {
+      return new Promise((resolve, reject) => {
+        const img = new Image();
+        const url = URL.createObjectURL(arquivo);
+        img.onload = () => {
+          let { width, height } = img;
+          if (width > maxDim || height > maxDim) {
+            const escala = maxDim / Math.max(width, height);
+            width = Math.round(width * escala);
+            height = Math.round(height * escala);
+          }
+          const canvas = document.createElement("canvas");
+          canvas.width = width;
+          canvas.height = height;
+          canvas.getContext("2d").drawImage(img, 0, 0, width, height);
+          URL.revokeObjectURL(url);
+          canvas.toBlob(
+            (blob) => (blob ? resolve(blob) : reject(new Error("falha ao comprimir"))),
+            "image/jpeg",
+            qualidade
+          );
+        };
+        img.onerror = () => reject(new Error("falha ao carregar imagem"));
+        img.src = url;
+      });
+    }
+
+    // Lê um arquivo (ou Blob) e retorna só o conteúdo em base64 (sem o prefixo data:)
     function lerArquivoBase64(arquivo) {
       return new Promise((resolve, reject) => {
         const reader = new FileReader();
